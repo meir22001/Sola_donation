@@ -274,13 +274,74 @@
             $('#currency').val(currency);
 
             updateCurrencySymbols();
+            updatePresetAmounts(); // Add this to update amounts for new currency
         });
     }
 
     function updateCurrencySymbols() {
-        const symbol = currencySymbols[currentCurrency];
-        $('.amount-symbol').text(symbol);
-        $('.currency-symbol').text(symbol);
+        // Get the correct symbol for display
+        let displaySymbol = currencySymbols[currentCurrency];
+
+        // For USD and CAD, use US$ and CA$ for distinction
+        if (currentCurrency === 'USD') displaySymbol = 'US$';
+        if (currentCurrency === 'CAD') displaySymbol = 'CA$';
+
+        $('.amount-symbol').text(displaySymbol);
+        $('.currency-symbol').text(displaySymbol);
+        updateSubmitButton();
+    }
+
+    /**
+     * Update preset amounts based on current currency
+     */
+    function updatePresetAmounts() {
+        const amounts = formSettings.preset_amounts[currentCurrency] || [10, 25, 50, 100];
+        const $amountGrid = $('#amountGrid');
+
+        // Get symbol for display
+        let displaySymbol = currencySymbols[currentCurrency];
+        if (currentCurrency === 'USD') displaySymbol = 'US$';
+        if (currentCurrency === 'CAD') displaySymbol = 'CA$';
+
+        // Remove existing amount buttons (but keep custom button)
+        $amountGrid.find('.sola-amount-btn:not(.sola-custom-amount-btn)').remove();
+
+        // Add new amount buttons
+        amounts.forEach((amount, index) => {
+            const isActive = (index === 2) ? 'active' : ''; // Third button active by default
+            const $btn = $(`<button type="button" class="sola-amount-btn ${isActive}" data-value="${amount}">
+                <span class="amount-symbol">${displaySymbol}</span>${amount}
+            </button>`);
+
+            // Add click handler
+            $btn.on('click', function () {
+                const $thisBtn = $(this);
+                const amt = $thisBtn.data('value');
+
+                $('.sola-amount-btn').removeClass('active');
+                $thisBtn.addClass('active');
+
+                // Reset custom amount
+                const $customBtn = $('#customAmountBtn');
+                $customBtn.removeClass('active editing');
+                $('#customAmountInput').hide().val('');
+                $('.custom-label').show();
+                $('.currency-symbol').hide();
+                $('.edit-icon').show();
+
+                currentAmount = amt;
+                $('#amount').val(amt);
+                updateSubmitButton();
+            });
+
+            // Insert before custom button
+            $amountGrid.find('.sola-custom-amount-btn').before($btn);
+        });
+
+        // Update current amount to default (third amount or first if less than 3)
+        const defaultAmount = amounts[2] || amounts[0] || 50;
+        currentAmount = defaultAmount;
+        $('#amount').val(defaultAmount);
         updateSubmitButton();
     }
 
