@@ -45,13 +45,8 @@ $required_fields = isset($form_settings['required_fields']) ? $form_settings['re
 if (isset($_POST['sola_donation_save'])) {
     check_admin_referer('sola_donation_settings_nonce');
     
-    $new_settings = array(
-        'sandbox_mode' => isset($_POST['sandbox_mode']) ? true : false,
-        'sandbox_key' => sanitize_text_field($_POST['sandbox_key']),
-        'production_key' => sanitize_text_field($_POST['production_key']),
-        'redirect_url' => esc_url_raw($_POST['redirect_url']),
-        'webhook_url' => esc_url_raw($_POST['webhook_url'])
-    );
+    // Use the sanitize function from main plugin file which handles all settings including form_settings
+    $new_settings = sola_donation_sanitize_settings($_POST);
     
     update_option('sola_donation_settings', $new_settings);
     
@@ -64,6 +59,25 @@ if (isset($_POST['sola_donation_save'])) {
     $production_key = $settings['production_key'];
     $redirect_url = $settings['redirect_url'];
     $webhook_url = $settings['webhook_url'];
+    
+    // Update form settings variables
+    $form_settings = isset($settings['form_settings']) ? $settings['form_settings'] : array();
+    $preset_amounts = isset($form_settings['preset_amounts']) ? $form_settings['preset_amounts'] : array(
+        'USD' => array(10, 25, 50, 100),
+        'CAD' => array(10, 25, 50, 100),
+        'EUR' => array(10, 25, 50, 100),
+        'GBP' => array(10, 25, 50, 100)
+    );
+    $enabled_currencies = isset($form_settings['enabled_currencies']) ? $form_settings['enabled_currencies'] : array('USD', 'CAD', 'EUR', 'GBP');
+    $default_currency = isset($form_settings['default_currency']) ? $form_settings['default_currency'] : 'USD';
+    $required_fields = isset($form_settings['required_fields']) ? $form_settings['required_fields'] : array(
+        'firstName' => true,
+        'lastName' => true,
+        'phone' => true,
+        'email' => true,
+        'address' => true,
+        'taxId' => false
+    );
 }
 ?>
 
@@ -205,10 +219,10 @@ if (isset($_POST['sola_donation_save'])) {
                     <td>
                         <div class="sola-currency-tabs">
                             <div class="sola-tab-buttons">
-                                <button type="button" class="sola-tab-btn active" data-currency="USD">$ USD</button>
-                                <button type="button" class="sola-tab-btn" data-currency="CAD">$ CAD</button>
-                                <button type="button" class="sola-tab-btn" data-currency="EUR">€ EUR</button>
-                                <button type="button" class="sola-tab-btn" data-currency="GBP">£ GBP</button>
+                                <button type="button" class="sola-tab-btn active" data-currency="USD">US$</button>
+                                <button type="button" class="sola-tab-btn" data-currency="CAD">CA$</button>
+                                <button type="button" class="sola-tab-btn" data-currency="EUR">€</button>
+                                <button type="button" class="sola-tab-btn" data-currency="GBP">£</button>
                             </div>
                             
                             <?php foreach (array('USD', 'CAD', 'EUR', 'GBP') as $currency): ?>
@@ -245,7 +259,7 @@ if (isset($_POST['sola_donation_save'])) {
                     </th>
                     <td>
                         <div class="sola-currency-checkboxes">
-                            <?php foreach (array('USD' => '$', 'CAD' => '$', 'EUR' => '€', 'GBP' => '£') as $curr => $symbol): ?>
+                            <?php foreach (array('USD' => 'US$', 'CAD' => 'CA$', 'EUR' => '€', 'GBP' => '£') as $curr => $symbol): ?>
                                 <label class="sola-checkbox-label-inline">
                                     <input type="checkbox" 
                                            name="enabled_currency_<?php echo $curr; ?>" 
@@ -265,7 +279,7 @@ if (isset($_POST['sola_donation_save'])) {
                     </th>
                     <td>
                         <select name="default_currency" id="default_currency">
-                            <?php foreach (array('USD' => '$ USD', 'CAD' => '$ CAD', 'EUR' => '€ EUR', 'GBP' => '£ GBP') as $curr => $label): ?>
+                            <?php foreach (array('USD' => 'US$ USD', 'CAD' => 'CA$ CAD', 'EUR' => '€ EUR', 'GBP' => '£ GBP') as $curr => $label): ?>
                                 <option value="<?php echo esc_attr($curr); ?>" <?php selected($default_currency, $curr); ?>>
                                     <?php echo esc_html($label); ?>
                                 </option>

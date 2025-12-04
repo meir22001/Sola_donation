@@ -156,8 +156,8 @@ if (!defined('ABSPATH')) {
                     <div class="sola-form-field">
                         <label class="sola-field-label" data-he="מטבע" data-en="Currency">מטבע</label>
                         <div class="sola-button-group" id="currencyGroup">
-                            <button type="button" class="sola-option-btn active" data-value="USD">$</button>
-                            <button type="button" class="sola-option-btn" data-value="CAD">$</button>
+                            <button type="button" class="sola-option-btn active" data-value="USD">US$</button>
+                            <button type="button" class="sola-option-btn" data-value="CAD">CA$</button>
                             <button type="button" class="sola-option-btn" data-value="EUR">€</button>
                             <button type="button" class="sola-option-btn" data-value="GBP">£</button>
                         </div>
