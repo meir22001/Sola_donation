@@ -62,6 +62,7 @@
 
     // Initialize when DOM is ready
     $(document).ready(function () {
+        initSettingsFromServer(); // ← NEW: Initialize from server settings FIRST
         initMultiStep();
         initLanguageToggle();
         initCurrencySelection();
@@ -71,6 +72,46 @@
         initFormSubmission();
         initPaymentMethods();
     });
+
+    /**
+     * Initialize form based on settings from server
+     * This runs ONCE on page load to set up the form correctly
+     */
+    function initSettingsFromServer() {
+        // 1. Filter currency buttons - show only enabled currencies
+        updateEnabledCurrencies();
+
+        // 2. Set default currency as active
+        currentCurrency = formSettings.default_currency || 'USD';
+        $('#currency').val(currentCurrency);
+        $('#currencyGroup .sola-option-btn').removeClass('active');
+        $('#currencyGroup .sola-option-btn[data-value="' + currentCurrency + '"]').addClass('active');
+
+        // 3. Load preset amounts for default currency
+        updateAmountButtons();
+
+        // 4. Update symbols
+        updateCurrencySymbols();
+
+        // 5. Note: Field requirements are already set in PHP template's required attribute
+        //    JavaScript validation in validateStep() and validateForm() uses formSettings.required_fields
+    }
+
+    /**
+     * Show/hide currency buttons based on enabled_currencies setting
+     */
+    function updateEnabledCurrencies() {
+        const enabledCurrencies = formSettings.enabled_currencies || ['USD', 'CAD', 'EUR', 'GBP'];
+
+        $('#currencyGroup .sola-option-btn').each(function () {
+            const currency = $(this).data('value');
+            if (enabledCurrencies.includes(currency)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }
 
     /**
      * Multi-Step Navigation
@@ -274,7 +315,7 @@
             $('#currency').val(currency);
 
             updateCurrencySymbols();
-            updatePresetAmounts(); // Add this to update amounts for new currency
+            updateAmountButtons(); // Update amounts when currency changes
         });
     }
 
@@ -292,9 +333,10 @@
     }
 
     /**
-     * Update preset amounts based on current currency
+     * Update preset amount buttons based on current currency
+     * This regenerates the buttons with amounts from formSettings
      */
-    function updatePresetAmounts() {
+    function updateAmountButtons() {
         const amounts = formSettings.preset_amounts[currentCurrency] || [10, 25, 50, 100];
         const $amountGrid = $('#amountGrid');
 

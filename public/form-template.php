@@ -192,13 +192,22 @@ $currency_symbols = array(
                     <div class="sola-form-field">
                         <label class="sola-field-label" data-he="מטבע" data-en="Currency">מטבע</label>
                         <div class="sola-button-group" id="currencyGroup">
-                            <?php 
-                            $first_currency = true;
-                            foreach ($enabled_currencies as $currency): 
-                                $symbol = isset($currency_symbols[$currency]) ? $currency_symbols[$currency] : '$';
-                                $is_active = ($currency === $default_currency) ? 'active' : '';
+                            <?php
+                            // Always render all 4 currency buttons
+                            // JavaScript will show/hide based on enabled_currencies
+                            $all_currencies = array(
+                                'USD' => 'US$',
+                                'CAD' => 'CA$',
+                                'EUR' => '€',
+                                'GBP' => '£'
+                            );
+                            
+                            foreach ($all_currencies as $currency => $symbol):
+                                $is_enabled = in_array($currency, $enabled_currencies);
+                                $is_active = ($currency === $default_currency && $is_enabled) ? 'active' : '';
+                                $style = !$is_enabled ? ' style="display:none;"' : '';
                             ?>
-                                <button type="button" class="sola-option-btn <?php echo $is_active; ?>" data-value="<?php echo esc_attr($currency); ?>">
+                                <button type="button" class="sola-option-btn <?php echo $is_active; ?>" data-value="<?php echo esc_attr($currency); ?>"<?php echo $style; ?>>
                                     <?php echo esc_html($symbol); ?>
                                 </button>
                             <?php endforeach; ?>
