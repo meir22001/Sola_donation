@@ -3,7 +3,7 @@
  * Plugin Name: Sola Donation Plugin
  * Plugin URI: https://solapayments.com
  * Description: Professional bilingual (Hebrew/English) donation plugin with Sola Payments integration
- * Version: 1.3.2
+ * Version: 1.3.6
  * Author: Meir Tedgi
  * Author URI: https://yourwebsite.com
  * Text Domain: sola-donation
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SOLA_DONATION_VERSION', '1.3.2');
+define('SOLA_DONATION_VERSION', '1.3.6');
 define('SOLA_DONATION_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SOLA_DONATION_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -53,11 +53,55 @@ function sola_donation_activate() {
         )
     );
     
-    if (!get_option('sola_donation_settings')) {
+    // Get existing settings
+    $existing_settings = get_option('sola_donation_settings');
+    
+    if ($existing_settings) {
+        // Merge with existing to preserve API keys and add new form_settings
+        $updated_settings = array_merge($default_options, $existing_settings);
+        // Ensure form_settings exists
+        if (!isset($updated_settings['form_settings'])) {
+            $updated_settings['form_settings'] = $default_options['form_settings'];
+        }
+        update_option('sola_donation_settings', $updated_settings);
+    } else {
+        // First install
         add_option('sola_donation_settings', $default_options);
     }
 }
 register_activation_hook(__FILE__, 'sola_donation_activate');
+
+/**
+ * Ensure form_settings exist in database (migration function)
+ * This runs on every admin page load to catch existing installations
+ */
+function sola_donation_ensure_form_settings() {
+    $settings = get_option('sola_donation_settings');
+    
+    if ($settings && !isset($settings['form_settings'])) {
+        // Add form_settings to existing installation
+        $settings['form_settings'] = array(
+            'preset_amounts' => array(
+                'USD' => array(10, 25, 50, 100),
+                'CAD' => array(10, 25, 50, 100),
+                'EUR' => array(10, 25, 50, 100),
+                'GBP' => array(10, 25, 50, 100)
+            ),
+            'enabled_currencies' => array('USD', 'CAD', 'EUR', 'GBP'),
+            'default_currency' => 'USD',
+            'required_fields' => array(
+                'firstName' => true,
+                'lastName' => true,
+                'phone' => true,
+                'email' => true,
+                'address' => true,
+                'taxId' => false
+            )
+        );
+        update_option('sola_donation_settings', $settings);
+    }
+}
+add_action('admin_init', 'sola_donation_ensure_form_settings');
 
 /**
  * Plugin deactivation hook
