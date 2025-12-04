@@ -7,6 +7,42 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+// Load form settings from database
+$settings = get_option('sola_donation_settings');
+$form_settings = isset($settings['form_settings']) ? $settings['form_settings'] : array();
+
+// Get preset amounts
+$preset_amounts = isset($form_settings['preset_amounts']) ? $form_settings['preset_amounts'] : array(
+    'USD' => array(10, 25, 50, 100),
+    'CAD' => array(10, 25, 50, 100),
+    'EUR' => array(10, 25, 50, 100),
+    'GBP' => array(10, 25, 50, 100)
+);
+
+// Get enabled currencies
+$enabled_currencies = isset($form_settings['enabled_currencies']) ? $form_settings['enabled_currencies'] : array('USD', 'CAD', 'EUR', 'GBP');
+
+// Get default currency
+$default_currency = isset($form_settings['default_currency']) ? $form_settings['default_currency'] : 'USD';
+
+// Get required fields
+$required_fields = isset($form_settings['required_fields']) ? $form_settings['required_fields'] : array(
+    'firstName' => true,
+    'lastName' => true,
+    'phone' => true,
+    'email' => true,
+    'address' => true,
+    'taxId' => false
+);
+
+// Currency symbols mapping
+$currency_symbols = array(
+    'USD' => 'US$',
+    'CAD' => 'CA$',
+    'EUR' => '€',
+    'GBP' => '£'
+);
 ?>
 
 <div class="sola-donation-form-wrapper" id="solaDonationForm" data-lang="he" dir="rtl">
@@ -54,7 +90,7 @@ if (!defined('ABSPATH')) {
                 <div class="sola-form-row">
                     <div class="sola-form-field">
                         <div class="sola-input-wrapper">
-                            <input type="text" name="firstName" id="firstName" class="sola-input" required placeholder=" ">
+                            <input type="text" name="firstName" id="firstName" class="sola-input" <?php echo $required_fields['firstName'] ? 'required' : ''; ?> placeholder=" ">
                             <label class="sola-label" data-he="שם פרטי" data-en="First Name">שם פרטי</label>
                             <span class="sola-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -67,7 +103,7 @@ if (!defined('ABSPATH')) {
                     
                     <div class="sola-form-field">
                         <div class="sola-input-wrapper">
-                            <input type="text" name="lastName" id="lastName" class="sola-input" required placeholder=" ">
+                            <input type="text" name="lastName" id="lastName" class="sola-input" <?php echo $required_fields['lastName'] ? 'required' : ''; ?> placeholder=" ">
                             <label class="sola-label" data-he="שם משפחה" data-en="Last Name">שם משפחה</label>
                             <span class="sola-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -84,7 +120,7 @@ if (!defined('ABSPATH')) {
                 <div class="sola-form-row">
                     <div class="sola-form-field">
                         <div class="sola-input-wrapper">
-                            <input type="tel" name="phone" id="phone" class="sola-input" required placeholder=" ">
+                            <input type="tel" name="phone" id="phone" class="sola-input" <?php echo $required_fields['phone'] ? 'required' : ''; ?> placeholder=" ">
                             <label class="sola-label" data-he="טלפון" data-en="Phone">טלפון</label>
                             <span class="sola-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -96,7 +132,7 @@ if (!defined('ABSPATH')) {
                     
                     <div class="sola-form-field">
                         <div class="sola-input-wrapper">
-                            <input type="email" name="email" id="email" class="sola-input" required placeholder=" ">
+                            <input type="email" name="email" id="email" class="sola-input" <?php echo $required_fields['email'] ? 'required' : ''; ?> placeholder=" ">
                             <label class="sola-label" data-he="דואר אלקטרוני" data-en="Email">דואר אלקטרוני</label>
                             <span class="sola-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -112,7 +148,7 @@ if (!defined('ABSPATH')) {
                 <div class="sola-form-row">
                     <div class="sola-form-field">
                         <div class="sola-input-wrapper">
-                            <input type="text" name="address" id="address" class="sola-input" required placeholder=" ">
+                            <input type="text" name="address" id="address" class="sola-input" <?php echo $required_fields['address'] ? 'required' : ''; ?> placeholder=" ">
                             <label class="sola-label" data-he="כתובת מגורים" data-en="Address">כתובת מגורים</label>
                             <span class="sola-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -125,7 +161,7 @@ if (!defined('ABSPATH')) {
                     
                     <div class="sola-form-field">
                         <div class="sola-input-wrapper">
-                            <input type="text" name="taxId" id="taxId" class="sola-input" placeholder="">
+                            <input type="text" name="taxId" id="taxId" class="sola-input" <?php echo $required_fields['taxId'] ? 'required' : ''; ?> placeholder=" ">
                             <label class="sola-label" data-he="מספר עוסק / ת.ז" data-en="Tax ID">מספר עוסק / ת.ז</label>
                             <span class="sola-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -156,12 +192,18 @@ if (!defined('ABSPATH')) {
                     <div class="sola-form-field">
                         <label class="sola-field-label" data-he="מטבע" data-en="Currency">מטבע</label>
                         <div class="sola-button-group" id="currencyGroup">
-                            <button type="button" class="sola-option-btn active" data-value="USD">US$</button>
-                            <button type="button" class="sola-option-btn" data-value="CAD">CA$</button>
-                            <button type="button" class="sola-option-btn" data-value="EUR">€</button>
-                            <button type="button" class="sola-option-btn" data-value="GBP">£</button>
+                            <?php 
+                            $first_currency = true;
+                            foreach ($enabled_currencies as $currency): 
+                                $symbol = isset($currency_symbols[$currency]) ? $currency_symbols[$currency] : '$';
+                                $is_active = ($currency === $default_currency) ? 'active' : '';
+                            ?>
+                                <button type="button" class="sola-option-btn <?php echo $is_active; ?>" data-value="<?php echo esc_attr($currency); ?>">
+                                    <?php echo esc_html($symbol); ?>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
-                        <input type="hidden" name="currency" id="currency" value="USD">
+                        <input type="hidden" name="currency" id="currency" value="<?php echo esc_attr($default_currency); ?>">
                     </div>
                     
                     <div class="sola-form-field">
@@ -178,13 +220,24 @@ if (!defined('ABSPATH')) {
                     <div class="sola-form-field sola-full-width">
                         <label class="sola-field-label" data-he="סכום התרומה" data-en="Donation Amount">סכום התרומה</label>
                         <div class="sola-amount-grid" id="amountGrid">
-                            <button type="button" class="sola-amount-btn" data-value="10"><span class="amount-symbol">$</span>10</button>
-                            <button type="button" class="sola-amount-btn" data-value="25"><span class="amount-symbol">$</span>25</button>
-                            <button type="button" class="sola-amount-btn active" data-value="50"><span class="amount-symbol">$</span>50</button>
-                            <button type="button" class="sola-amount-btn" data-value="100"><span class="amount-symbol">$</span>100</button>
+                            <?php 
+                            // Get amounts for default currency
+                            $default_amounts = isset($preset_amounts[$default_currency]) ? $preset_amounts[$default_currency] : array(10, 25, 50, 100);
+                            $default_symbol = isset($currency_symbols[$default_currency]) ? $currency_symbols[$default_currency] : '$';
+                            $first_amount = true;
+                            
+                            foreach ($default_amounts as $index => $amount):
+                                $is_active = ($first_amount && $index === 0) ? '' : ($index === 2 ? 'active' : '');
+                                if ($index === 0) $first_amount = false;
+                            ?>
+                                <button type="button" class="sola-amount-btn <?php echo $is_active; ?>" data-value="<?php echo esc_attr($amount); ?>">
+                                    <span class="amount-symbol"><?php echo esc_html($default_symbol); ?></span><?php echo esc_html($amount); ?>
+                                </button>
+                            <?php endforeach; ?>
+                            
                             <button type="button" class="sola-amount-btn sola-custom-amount-btn" id="customAmountBtn">
                             <span class="custom-label" data-he="סכום אחר" data-en="Custom Amount">סכום אחר</span>
-                            <span class="currency-symbol" style="display: none;">$</span>
+                            <span class="currency-symbol" style="display: none;"><?php echo esc_html($default_symbol); ?></span>
                             <input type="number" 
                                    class="custom-amount-input number-font" 
                                    id="customAmountInput" 
@@ -198,7 +251,11 @@ if (!defined('ABSPATH')) {
                             </svg>
                         </button>
                         </div>
-                        <input type="hidden" name="amount" id="amount" value="50">
+                        <?php 
+                        // Get the third amount (index 2) or first if less than 3
+                        $default_amount_value = isset($default_amounts[2]) ? $default_amounts[2] : (isset($default_amounts[0]) ? $default_amounts[0] : 50);
+                        ?>
+                        <input type="hidden" name="amount" id="amount" value="<?php echo esc_attr($default_amount_value); ?>">
                     </div>
                 </div>
                 
@@ -348,7 +405,7 @@ if (!defined('ABSPATH')) {
                         </svg>
                         <span class="btn-text">
                             <span data-he="תרום" data-en="Donate">תרום</span>
-                            <span class="amount-display number-font">$50</span>
+                            <span class="amount-display number-font"><?php echo esc_html($default_symbol . $default_amount_value); ?></span>
                             <span data-he="עכשיו" data-en="Now">עכשיו</span>
                         </span>
                         <span class="spinner" style="display: none;">
