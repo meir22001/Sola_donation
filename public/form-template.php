@@ -156,11 +156,12 @@ if (!defined('ABSPATH')) {
                     <div class="sola-form-field">
                         <label class="sola-field-label" data-he="מטבע" data-en="Currency">מטבע</label>
                         <div class="sola-button-group" id="currencyGroup">
-                            <button type="button" class="sola-option-btn active" data-value="ILS">₪</button>
-                            <button type="button" class="sola-option-btn" data-value="USD">$</button>
+                            <button type="button" class="sola-option-btn active" data-value="USD">$</button>
+                            <button type="button" class="sola-option-btn" data-value="CAD">$</button>
                             <button type="button" class="sola-option-btn" data-value="EUR">€</button>
+                            <button type="button" class="sola-option-btn" data-value="GBP">£</button>
                         </div>
-                        <input type="hidden" name="currency" id="currency" value="ILS">
+                        <input type="hidden" name="currency" id="currency" value="USD">
                     </div>
                     
                     <div class="sola-form-field">
@@ -177,13 +178,13 @@ if (!defined('ABSPATH')) {
                     <div class="sola-form-field sola-full-width">
                         <label class="sola-field-label" data-he="סכום התרומה" data-en="Donation Amount">סכום התרומה</label>
                         <div class="sola-amount-grid" id="amountGrid">
-                            <button type="button" class="sola-amount-btn" data-value="50"><span class="amount-symbol">₪</span>50</button>
-                            <button type="button" class="sola-amount-btn active" data-value="100"><span class="amount-symbol">₪</span>100</button>
-                            <button type="button" class="sola-amount-btn" data-value="180"><span class="amount-symbol">₪</span>180</button>
-                            <button type="button" class="sola-amount-btn" data-value="500"><span class="amount-symbol">₪</span>500</button>
+                            <button type="button" class="sola-amount-btn" data-value="10"><span class="amount-symbol">$</span>10</button>
+                            <button type="button" class="sola-amount-btn" data-value="25"><span class="amount-symbol">$</span>25</button>
+                            <button type="button" class="sola-amount-btn active" data-value="50"><span class="amount-symbol">$</span>50</button>
+                            <button type="button" class="sola-amount-btn" data-value="100"><span class="amount-symbol">$</span>100</button>
                             <button type="button" class="sola-amount-btn sola-custom-amount-btn" id="customAmountBtn">
                             <span class="custom-label" data-he="סכום אחר" data-en="Custom Amount">סכום אחר</span>
-                            <span class="currency-symbol" style="display: none;">₪</span>
+                            <span class="currency-symbol" style="display: none;">$</span>
                             <input type="number" 
                                    class="custom-amount-input number-font" 
                                    id="customAmountInput" 
@@ -197,7 +198,7 @@ if (!defined('ABSPATH')) {
                             </svg>
                         </button>
                         </div>
-                        <input type="hidden" name="amount" id="amount" value="100">
+                        <input type="hidden" name="amount" id="amount" value="50">
                     </div>
                 </div>
                 
@@ -347,7 +348,7 @@ if (!defined('ABSPATH')) {
                         </svg>
                         <span class="btn-text">
                             <span data-he="תרום" data-en="Donate">תרום</span>
-                            <span class="amount-display number-font">₪100</span>
+                            <span class="amount-display number-font">$50</span>
                             <span data-he="עכשיו" data-en="Now">עכשיו</span>
                         </span>
                         <span class="spinner" style="display: none;">

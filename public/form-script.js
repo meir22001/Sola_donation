@@ -5,18 +5,39 @@
 (function ($) {
     'use strict';
 
+    // Get form settings from localized data
+    const formSettings = solaDonation.formSettings || {
+        preset_amounts: {
+            'USD': [10, 25, 50, 100],
+            'CAD': [10, 25, 50, 100],
+            'EUR': [10, 25, 50, 100],
+            'GBP': [10, 25, 50, 100]
+        },
+        enabled_currencies: ['USD', 'CAD', 'EUR', 'GBP'],
+        default_currency: 'USD',
+        required_fields: {
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            address: true,
+            taxId: false
+        }
+    };
+
     // State
     let currentLang = 'he';
-    let currentCurrency = 'ILS';
-    let currentAmount = '100';
+    let currentCurrency = formSettings.default_currency || 'USD';
+    let currentAmount = '50';
     let donationType = 'monthly';
     let currentStep = 1;
 
     // Currency symbols
     const currencySymbols = {
-        'ILS': '₪',
         'USD': '$',
-        'EUR': '€'
+        'CAD': '$',
+        'EUR': '€',
+        'GBP': '£'
     };
 
     // Card type patterns
@@ -186,13 +207,20 @@
 
         const msg = messages[currentLang];
 
-        // Validate required fields in current step
-        $section.find('input[required]').each(function () {
-            if (!$(this).val() || $(this).val().trim() === '') {
-                isValid = false;
-                $(this).addClass('error');
-            } else {
-                $(this).removeClass('error');
+        // Validate fields in current step based on settings
+        $section.find('input[name]').each(function () {
+            const fieldName = $(this).attr('name');
+
+            // Check if field is in required_fields settings
+            if (formSettings.required_fields.hasOwnProperty(fieldName)) {
+                const isRequired = formSettings.required_fields[fieldName];
+
+                if (isRequired && (!$(this).val() || $(this).val().trim() === '')) {
+                    isValid = false;
+                    $(this).addClass('error');
+                } else {
+                    $(this).removeClass('error');
+                }
             }
         });
 
@@ -275,6 +303,12 @@
             } else {
                 $('#chargeMonthlyRow').slideUp(300);
             }
+        });
+
+        // Checkbox click handler - toggle checkbox when wrapper is clicked
+        $('.sola-checkbox-wrapper').on('click', function () {
+            const $checkbox = $(this).find('.sola-checkbox');
+            $checkbox.prop('checked', !$checkbox.prop('checked'));
         });
     }
 
@@ -583,13 +617,26 @@
 
         const msg = messages[currentLang];
 
-        // Get all required fields
-        const requiredFields = [
-            'firstName', 'lastName', 'phone', 'email', 'address',
-            'cardNumber', 'expiry', 'cvv'
-        ];
 
-        requiredFields.forEach(function (fieldName) {
+        // Get all required fields based on settings
+        const personalFields = ['firstName', 'lastName', 'phone', 'email', 'address', 'taxId'];
+        const paymentFields = ['cardNumber', 'expiry', 'cvv']; // Always required for payment
+
+        // Validate personal fields based on settings
+        personalFields.forEach(function (fieldName) {
+            const $field = $(`#${fieldName}`);
+            const isRequired = formSettings.required_fields[fieldName];
+
+            if (isRequired && (!$field.val() || $field.val().trim() === '')) {
+                isValid = false;
+                $field.addClass('error');
+            } else {
+                $field.removeClass('error');
+            }
+        });
+
+        // Validate payment fields (always required)
+        paymentFields.forEach(function (fieldName) {
             const $field = $(`#${fieldName}`);
             if (!$field.val() || $field.val().trim() === '') {
                 isValid = false;

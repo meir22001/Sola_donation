@@ -22,6 +22,25 @@ $production_key = isset($settings['production_key']) ? $settings['production_key
 $redirect_url = isset($settings['redirect_url']) ? $settings['redirect_url'] : '';
 $webhook_url = isset($settings['webhook_url']) ? $settings['webhook_url'] : '';
 
+// Form settings
+$form_settings = isset($settings['form_settings']) ? $settings['form_settings'] : array();
+$preset_amounts = isset($form_settings['preset_amounts']) ? $form_settings['preset_amounts'] : array(
+    'USD' => array(10, 25, 50, 100),
+    'CAD' => array(10, 25, 50, 100),
+    'EUR' => array(10, 25, 50, 100),
+    'GBP' => array(10, 25, 50, 100)
+);
+$enabled_currencies = isset($form_settings['enabled_currencies']) ? $form_settings['enabled_currencies'] : array('USD', 'CAD', 'EUR', 'GBP');
+$default_currency = isset($form_settings['default_currency']) ? $form_settings['default_currency'] : 'USD';
+$required_fields = isset($form_settings['required_fields']) ? $form_settings['required_fields'] : array(
+    'firstName' => true,
+    'lastName' => true,
+    'phone' => true,
+    'email' => true,
+    'address' => true,
+    'taxId' => false
+);
+
 // Handle form submission
 if (isset($_POST['sola_donation_save'])) {
     check_admin_referer('sola_donation_settings_nonce');
@@ -165,6 +184,129 @@ if (isset($_POST['sola_donation_save'])) {
                         <p class="description">
                             <?php echo esc_html__('URL to send transaction data after successful donation (optional).', 'sola-donation'); ?>
                         </p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Form Customization -->
+        <div class="sola-settings-section">
+            <h2><?php echo esc_html__('Form Customization', 'sola-donation'); ?></h2>
+            <p class="description">
+                <?php echo esc_html__('Customize the donation form preset amounts, enabled currencies, and field requirements.', 'sola-donation'); ?>
+            </p>
+            
+            <table class="form-table">
+                <!-- Preset Amounts Section -->
+                <tr>
+                    <th scope="row">
+                        <label><?php echo esc_html__('Preset Amounts', 'sola-donation'); ?></label>
+                    </th>
+                    <td>
+                        <div class="sola-currency-tabs">
+                            <div class="sola-tab-buttons">
+                                <button type="button" class="sola-tab-btn active" data-currency="USD">$ USD</button>
+                                <button type="button" class="sola-tab-btn" data-currency="CAD">$ CAD</button>
+                                <button type="button" class="sola-tab-btn" data-currency="EUR">€ EUR</button>
+                                <button type="button" class="sola-tab-btn" data-currency="GBP">£ GBP</button>
+                            </div>
+                            
+                            <?php foreach (array('USD', 'CAD', 'EUR', 'GBP') as $currency): ?>
+                                <div class="sola-tab-content <?php echo $currency === 'USD' ? 'active' : ''; ?>" data-currency="<?php echo $currency; ?>">
+                                    <div class="sola-amounts-grid">
+                                        <?php 
+                                        $amounts = isset($preset_amounts[$currency]) ? $preset_amounts[$currency] : array(10, 25, 50, 100);
+                                        for ($i = 0; $i < 4; $i++): 
+                                            $value = isset($amounts[$i]) ? $amounts[$i] : '';
+                                        ?>
+                                            <div class="sola-amount-input-wrapper">
+                                                <label><?php echo sprintf(__('Amount %d', 'sola-donation'), $i + 1); ?></label>
+                                                <input type="number" 
+                                                       name="preset_amount_<?php echo $currency; ?>_<?php echo $i + 1; ?>" 
+                                                       value="<?php echo esc_attr($value); ?>" 
+                                                       min="0" 
+                                                       step="0.01"
+                                                       class="small-text"
+                                                       placeholder="<?php echo esc_attr__('Amount', 'sola-donation'); ?>">
+                                            </div>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description"><?php echo esc_html__('Set preset donation amounts for each currency. Leave empty to skip an amount slot.', 'sola-donation'); ?></p>
+                    </td>
+                </tr>
+                
+                <!-- Currency Settings -->
+                <tr>
+                    <th scope="row">
+                        <label><?php echo esc_html__('Enabled Currencies', 'sola-donation'); ?></label>
+                    </th>
+                    <td>
+                        <div class="sola-currency-checkboxes">
+                            <?php foreach (array('USD' => '$', 'CAD' => '$', 'EUR' => '€', 'GBP' => '£') as $curr => $symbol): ?>
+                                <label class="sola-checkbox-label-inline">
+                                    <input type="checkbox" 
+                                           name="enabled_currency_<?php echo $curr; ?>" 
+                                           value="1" 
+                                           <?php checked(in_array($curr, $enabled_currencies)); ?>>
+                                    <span><?php echo $symbol . ' ' . $curr; ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description"><?php echo esc_html__('Select which currencies will be available in the donation form. At least one must be enabled.', 'sola-donation'); ?></p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">
+                        <label for="default_currency"><?php echo esc_html__('Default Currency', 'sola-donation'); ?></label>
+                    </th>
+                    <td>
+                        <select name="default_currency" id="default_currency">
+                            <?php foreach (array('USD' => '$ USD', 'CAD' => '$ CAD', 'EUR' => '€ EUR', 'GBP' => '£ GBP') as $curr => $label): ?>
+                                <option value="<?php echo esc_attr($curr); ?>" <?php selected($default_currency, $curr); ?>>
+                                    <?php echo esc_html($label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php echo esc_html__('Currency selected by default when the form loads.', 'sola-donation'); ?></p>
+                    </td>
+                </tr>
+                
+                <!-- Required Fields -->
+                <tr>
+                    <th scope="row">
+                        <label><?php echo esc_html__('Required Fields', 'sola-donation'); ?></label>
+                    </th>
+                    <td>
+                        <div class="sola-required-fields">
+                            <?php 
+                            $field_labels = array(
+                                'firstName' => __('First Name', 'sola-donation'),
+                                'lastName' => __('Last Name', 'sola-donation'),
+                                'phone' => __('Phone', 'sola-donation'),
+                                'email' => __('Email', 'sola-donation'),
+                                'address' => __('Address', 'sola-donation'),
+                                'taxId' => __('Tax ID', 'sola-donation')
+                            );
+                            foreach ($field_labels as $field => $label): 
+                                $is_required = isset($required_fields[$field]) ? $required_fields[$field] : true;
+                            ?>
+                                <div class="sola-field-requirement">
+                                    <label class="sola-toggle">
+                                        <input type="checkbox" 
+                                               name="required_<?php echo $field; ?>" 
+                                               value="1" 
+                                               <?php checked($is_required, true); ?>>
+                                        <span class="sola-toggle-slider"></span>
+                                    </label>
+                                    <span class="field-label"><?php echo esc_html($label); ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description"><?php echo esc_html__('Toggle which fields are required vs optional. Email is strongly recommended to be required.', 'sola-donation'); ?></p>
                     </td>
                 </tr>
             </table>

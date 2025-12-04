@@ -32,7 +32,25 @@ function sola_donation_activate() {
         'sandbox_key' => '',
         'production_key' => '',
         'redirect_url' => '',
-        'webhook_url' => ''
+        'webhook_url' => '',
+        'form_settings' => array(
+            'preset_amounts' => array(
+                'USD' => array(10, 25, 50, 100),
+                'CAD' => array(10, 25, 50, 100),
+                'EUR' => array(10, 25, 50, 100),
+                'GBP' => array(10, 25, 50, 100)
+            ),
+            'enabled_currencies' => array('USD', 'CAD', 'EUR', 'GBP'),
+            'default_currency' => 'USD',
+            'required_fields' => array(
+                'firstName' => true,
+                'lastName' => true,
+                'phone' => true,
+                'email' => true,
+                'address' => true,
+                'taxId' => false
+            )
+        )
     );
     
     if (!get_option('sola_donation_settings')) {
@@ -91,6 +109,55 @@ function sola_donation_sanitize_settings($input) {
     $sanitized['production_key'] = sanitize_text_field($input['production_key']);
     $sanitized['redirect_url'] = esc_url_raw($input['redirect_url']);
     $sanitized['webhook_url'] = esc_url_raw($input['webhook_url']);
+    
+    // Sanitize form settings
+    $sanitized['form_settings'] = array();
+    
+    // Preset amounts
+    $sanitized['form_settings']['preset_amounts'] = array();
+    foreach (array('USD', 'CAD', 'EUR', 'GBP') as $currency) {
+        $amounts = array();
+        for ($i = 1; $i <= 4; $i++) {
+            $key = 'preset_amount_' . $currency . '_' . $i;
+            if (isset($input[$key]) && is_numeric($input[$key]) && $input[$key] > 0) {
+                $amounts[] = floatval($input[$key]);
+            }
+        }
+        // Ensure we have at least one amount
+        if (empty($amounts)) {
+            $amounts = array(10, 25, 50, 100); // Default amounts
+        }
+        $sanitized['form_settings']['preset_amounts'][$currency] = $amounts;
+    }
+    
+    // Enabled currencies - at least one must be enabled
+    $enabled_currencies = array();
+    foreach (array('USD', 'CAD', 'EUR', 'GBP') as $currency) {
+        if (isset($input['enabled_currency_' . $currency])) {
+            $enabled_currencies[] = $currency;
+        }
+    }
+    if (empty($enabled_currencies)) {
+        $enabled_currencies = array('USD'); // Default to USD if none selected
+    }
+    $sanitized['form_settings']['enabled_currencies'] = $enabled_currencies;
+    
+    // Default currency
+    $default_currency = isset($input['default_currency']) ? sanitize_text_field($input['default_currency']) : 'USD';
+    if (!in_array($default_currency, $enabled_currencies)) {
+        $default_currency = $enabled_currencies[0]; // Use first enabled currency
+    }
+    $sanitized['form_settings']['default_currency'] = $default_currency;
+    
+    // Required fields
+    $sanitized['form_settings']['required_fields'] = array(
+        'firstName' => isset($input['required_firstName']) ? true : false,
+        'lastName' => isset($input['required_lastName']) ? true : false,
+        'phone' => isset($input['required_phone']) ? true : false,
+        'email' => isset($input['required_email']) ? true : false,
+        'address' => isset($input['required_address']) ? true : false,
+        'taxId' => isset($input['required_taxId']) ? true : false
+    );
     
     // Validate API key if provided
     $key_to_test = $sanitized['sandbox_mode'] ? $sanitized['sandbox_key'] : $sanitized['production_key'];
@@ -169,6 +236,14 @@ function sola_donation_admin_styles($hook) {
         array(),
         SOLA_DONATION_VERSION
     );
+    
+    wp_enqueue_script(
+        'sola-donation-admin',
+        SOLA_DONATION_PLUGIN_URL . 'admin/admin-script.js',
+        array('jquery'),
+        SOLA_DONATION_VERSION,
+        true
+    );
 }
 add_action('admin_enqueue_scripts', 'sola_donation_admin_styles');
 
@@ -192,10 +267,31 @@ function sola_donation_enqueue_assets() {
     );
     
     // Localize script with AJAX URL and nonce
+    $settings = get_option('sola_donation_settings');
+    $form_settings = isset($settings['form_settings']) ? $settings['form_settings'] : array(
+        'preset_amounts' => array(
+            'USD' => array(10, 25, 50, 100),
+            'CAD' => array(10, 25, 50, 100),
+            'EUR' => array(10, 25, 50, 100),
+            'GBP' => array(10, 25, 50, 100)
+        ),
+        'enabled_currencies' => array('USD', 'CAD', 'EUR', 'GBP'),
+        'default_currency' => 'USD',
+        'required_fields' => array(
+            'firstName' => true,
+            'lastName' => true,
+            'phone' => true,
+            'email' => true,
+            'address' => true,
+            'taxId' => false
+        )
+    );
+    
     wp_localize_script('sola-donation-form', 'solaDonation', array(
         'ajaxUrl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('sola_donation_nonce'),
-        'pluginUrl' => SOLA_DONATION_PLUGIN_URL
+        'pluginUrl' => SOLA_DONATION_PLUGIN_URL,
+        'formSettings' => $form_settings
     ));
 }
 add_action('wp_enqueue_scripts', 'sola_donation_enqueue_assets');
