@@ -1,0 +1,1218 @@
+/**
+ * Sola Donation Form Styles - Enhanced Version
+ * Multi-step form with refined animations
+ */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* Root Variables */
+:root {
+    --primary-blue: #023047;
+    --accent-orange: #F49431;
+    --accent-orange-light: #ff9d47;
+    --white: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.98);
+    --glass-border: rgba(2, 48, 71, 0.1);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --shadow-sm: 0 1px 3px rgba(2, 48, 71, 0.08);
+    --shadow-md: 0 4px 12px rgba(2, 48, 71, 0.1);
+    --shadow-lg: 0 8px 20px rgba(2, 48, 71, 0.12);
+    --shadow-xl: 0 12px 28px rgba(2, 48, 71, 0.15);
+}
+
+/* Number Font */
+.number-font,
+.amount-symbol,
+.currency-symbol,
+.amount-display {
+    font-family: 'Outfit', sans-serif !important;
+}
+
+/* Main Wrapper */
+.sola-donation-form-wrapper {
+    min-height: 100vh;
+    padding: 20px;
+    background: transparent;
+    transition: direction 0.3s ease;
+}
+
+.sola-donation-form-wrapper[dir="rtl"] {
+    font-family: 'Noto Sans Hebrew', sans-serif;
+    direction: rtl;
+}
+
+.sola-donation-form-wrapper[dir="ltr"] {
+    font-family: 'Inter', sans-serif;
+    direction: ltr;
+}
+
+/* Form Container */
+.sola-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Form Header */
+.sola-form-header {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sola-title {
+    color: var(--primary-blue);
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.sola-subtitle {
+    color: var(--primary-blue);
+    opacity: 0.7;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Language Toggle Button - FIXED */
+.sola-lang-toggle {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.sola-lang-toggle span {
+    color: white;
+}
+
+.sola-lang-toggle:hover {
+    background: #023047;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Progress Steps */
+.sola-progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    gap: 12px;
+}
+
+.sola-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 12px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sola-step.active {
+    border-color: var(--accent-orange);
+    background: rgba(244, 148, 49, 0.05);
+}
+
+.sola-step.completed {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.sola-step.active .step-number {
+    background: var(--accent-orange);
+    color: white;
+}
+
+.sola-step.completed .step-number {
+    background: #22c55e;
+    color: white;
+}
+
+.sola-step.completed .step-number::before {
+    content: '✓';
+    font-size: 18px;
+}
+
+.step-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+}
+
+.sola-step.active .step-label {
+    color: var(--accent-orange);
+}
+
+/* Form Sections */
+.sola-form-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    display: none;
+}
+
+.sola-form-section.active {
+    display: block;
+    animation: fadeSlideIn 0.4s ease;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Section Title */
+.sola-section-title {
+    color: var(--primary-blue);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sola-section-icon {
+    background: rgba(244, 148, 49, 0.1);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-orange);
+}
+
+.sola-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+/* Security Badge */
+.sola-security-badge {
+    background: rgba(2, 48, 71, 0.05);
+    border: 1px solid rgba(2, 48, 71, 0.1);
+    border-radius: 10px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary-blue);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Form Rows */
+.sola-form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+/* Align monthly fields at bottom */
+#chargeMonthlyRow {
+    align-items: flex-end;
+}
+
+.sola-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.sola-form-field {
+    flex: 1;
+}
+
+.sola-form-field.sola-full-width {
+    flex: 1 1 100%;
+}
+
+/* Field Label */
+.sola-field-label {
+    display: block;
+    color: var(--primary-blue);
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+/* Input Wrapper */
+.sola-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Input Fields - ENHANCED DESIGN - Maximum Specificity */
+.sola-donation-form-wrapper .sola-input,
+.sola-donation-form-wrapper input.sola-input,
+.sola-donation-form-wrapper select.sola-input,
+.sola-input {
+    width: 100% !important;
+    padding: 14px 14px 14px 14px !important;
+    padding-left: 44px !important;
+    background: var(--input-bg) !important;
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 14px !important;
+    color: var(--primary-blue) !important;
+    font-size: 15px !important;
+    transition: all 0.3s ease !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 3px rgba(2, 48, 71, 0.08) !important;
+    -webkit-border-radius: 14px !important;
+    -moz-border-radius: 14px !important;
+    text-indent: 0 !important;
+}
+
+.sola-donation-form-wrapper[dir="rtl"] .sola-input,
+[dir="rtl"] .sola-donation-form-wrapper .sola-input,
+[dir="rtl"] .sola-input,
+body[dir="rtl"] .sola-input {
+    padding: 14px 44px 14px 14px !important;
+    text-align: right !important;
+    direction: rtl !important;
+}
+
+/* Force LTR for payment fields - credit card numbers must always be LTR */
+.sola-donation-form-wrapper[dir="rtl"] #cardNumber,
+.sola-donation-form-wrapper[dir="rtl"] #expiry,
+.sola-donation-form-wrapper[dir="rtl"] #cvv,
+[dir="rtl"] #cardNumber,
+[dir="rtl"] #expiry,
+[dir="rtl"] #cvv {
+    direction: ltr !important;
+    text-align: left !important;
+    padding: 14px 14px 14px 44px !important;
+}
+
+[dir="ltr"] .sola-donation-form-wrapper .sola-input,
+[dir="ltr"] .sola-input {
+    padding: 14px 14px 14px 14px !important;
+    padding-left: 44px !important;
+    padding-right: 14px !important;
+    text-align: left !important;
+    text-indent: 0 !important;
+}
+
+.sola-donation-form-wrapper .sola-input:hover,
+.sola-input:hover {
+    border-color: rgba(244, 148, 49, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(2, 48, 71, 0.1) !important;
+}
+
+.sola-donation-form-wrapper .sola-input:focus,
+.sola-input:focus {
+    outline: none !important;
+    background: white !important;
+    border-color: #F49431 !important;
+    box-shadow: 0 0 0 3px rgba(244, 148, 49, 0.1), 0 4px 12px rgba(2, 48, 71, 0.1) !important;
+}
+
+/* Enhanced Error State */
+.sola-input.error {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.03);
+    animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.sola-input.error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), var(--shadow-md);
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-4px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(4px);
+    }
+}
+
+/* Select Field Specific Styles */
+select.sola-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23023047' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+[dir="ltr"] select.sola-input {
+    background-position: right 14px center;
+    padding-right: 44px !important;
+    padding-left: 44px !important;
+}
+
+[dir="rtl"] select.sola-input {
+    background-position: left 14px center;
+    padding-left: 44px !important;
+    padding-right: 44px !important;
+}
+
+.sola-input::placeholder {
+    color: rgba(2, 48, 71, 0.3);
+}
+
+/* Input Icon */
+.sola-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-blue);
+    opacity: 0.5;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+[dir="rtl"] .sola-icon {
+    left: auto;
+    right: 14px;
+}
+
+.sola-input:focus~.sola-icon,
+.sola-input:hover~.sola-icon {
+    color: var(--accent-orange);
+    opacity: 1;
+}
+
+/* Floating Label */
+.sola-label {
+    position: absolute;
+    left: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-blue);
+    opacity: 0.5;
+    font-size: 15px;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+[dir="rtl"] .sola-label {
+    left: auto;
+    right: 44px;
+}
+
+[dir="ltr"] .sola-label {
+    left: 44px;
+    right: auto;
+}
+
+.sola-input:focus~.sola-label,
+.sola-input:not(:placeholder-shown)~.sola-label {
+    opacity: 0;
+}
+
+/* Enhanced Validation Icon */
+.sola-validation-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+[dir="rtl"] .sola-validation-icon {
+    right: auto;
+    left: 14px;
+}
+
+.sola-validation-icon.valid,
+.sola-validation-icon.invalid {
+    opacity: 1;
+}
+
+.sola-validation-icon.valid {
+    color: #22c55e;
+    animation: bounceIn 0.4s ease;
+}
+
+.sola-validation-icon.invalid {
+    color: #ef4444;
+    animation: shake 0.4s ease;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: translateY(-50%) scale(0);
+    }
+
+    50% {
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    100% {
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+/* Checkbox Field Styles */
+.sola-checkbox-field {
+    display: flex;
+    align-items: center;
+}
+
+.sola-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 52px;
+    padding: 14px;
+    background: var(--input-bg);
+    border: 2px solid #e0e0e0;
+    border-radius: 14px !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sola-checkbox-wrapper:hover {
+    border-color: rgba(244, 148, 49, 0.4);
+    box-shadow: var(--shadow-md) !important;
+}
+
+.sola-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent-orange);
+}
+
+.sola-checkbox-label {
+    font-size: 14px;
+    color: var(--primary-blue);
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+}
+
+/* Button Groups */
+.sola-button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.sola-option-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    color: var(--primary-blue);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.sola-option-btn:hover {
+    border-color: #023047;
+    background: #023047;
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.sola-option-btn.active {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+    border-color: var(--accent-orange);
+    color: white;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Amount Buttons */
+.sola-amount-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.sola-amount-btn {
+    position: relative;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    border: 2px solid #e0e0e0;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-blue);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.sola-amount-btn:hover {
+    border-color: #023047;
+    background: #023047;
+    color: white;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.sola-amount-btn.active {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+    color: white;
+    border-color: var(--accent-orange);
+    box-shadow: 0 4px 12px rgba(244, 148, 49, 0.3);
+}
+
+.amount-symbol {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-inline-end: 4px;
+}
+
+/* Custom Amount Button - Enhanced with Overlay */
+.sola-custom-amount-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 56px;
+    background: linear-gradient(135deg, rgba(244, 148, 49, 0.1), rgba(244, 148, 49, 0.05));
+    border: 2px dashed var(--accent-orange);
+}
+
+.sola-custom-amount-btn:hover {
+    background: linear-gradient(135deg, rgba(244, 148, 49, 0.15), rgba(244, 148, 49, 0.08));
+}
+
+.sola-custom-amount-btn.active {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+    border-style: solid;
+}
+
+.sola-custom-amount-btn .custom-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent-orange);
+    transition: opacity 0.2s ease;
+}
+
+.sola-custom-amount-btn.active .custom-label {
+    color: white;
+}
+
+.sola-custom-amount-btn .edit-icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    stroke: var(--accent-orange);
+}
+
+.sola-custom-amount-btn.active .edit-icon {
+    stroke: white;
+}
+
+.sola-custom-amount-btn.editing .edit-icon {
+    opacity: 0;
+}
+
+.sola-custom-amount-btn .currency-symbol {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sola-custom-amount-btn.editing .currency-symbol {
+    opacity: 1;
+}
+
+.custom-amount-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.sola-custom-amount-btn.editing .custom-amount-input {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.custom-amount-input:focus {
+    outline: none;
+}
+
+/* Select Dropdown */
+select.sola-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23023047' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 44px;
+}
+
+[dir="rtl"] select.sola-input {
+    background-position: left 14px center;
+    padding-right: 14px;
+    padding-left: 44px;
+}
+
+/* Checkbox */
+.sola-checkbox-wrapper {
+    margin-top: 4px;
+}
+
+.sola-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.sola-checkbox-label:hover {
+    border-color: rgba(244, 148, 49, 0.4);
+    box-shadow: var(--shadow-md);
+}
+
+.sola-checkbox {
+    display: none;
+}
+
+.sola-checkbox-custom {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sola-checkbox:checked~.sola-checkbox-custom {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+    border-color: var(--accent-orange);
+}
+
+.sola-checkbox:checked~.sola-checkbox-custom::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.sola-checkbox-text {
+    color: var(--primary-blue);
+    font-weight: 500;
+    font-size: 14px;
+    flex: 1;
+}
+
+/* Card Type Logo - USING IMAGES */
+.card-type-logo {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 24px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+[dir="rtl"] .card-type-logo {
+    right: auto;
+    left: 14px;
+}
+
+.card-type-logo.visible {
+    opacity: 1;
+}
+
+.card-type-logo img {
+    height: 100%;
+    width: auto;
+}
+
+/* Encryption Notice */
+.sola-encryption-notice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary-blue);
+    opacity: 0.6;
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+/* Navigation Buttons */
+.sola-form-navigation {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.sola-form-navigation>* {
+    flex: 1;
+}
+
+.sola-nav-btn {
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.sola-nav-btn.btn-back {
+    background: #6b7280;
+    color: white;
+    flex-direction: row;
+}
+
+[dir="rtl"] .sola-nav-btn.btn-back {
+    flex-direction: row-reverse;
+}
+
+.sola-nav-btn.btn-back:hover {
+    background: #4b5563;
+}
+
+.sola-nav-btn.btn-next {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-light));
+    color: white;
+    flex-direction: row;
+}
+
+[dir="rtl"] .sola-nav-btn.btn-next {
+    flex-direction: row-reverse;
+}
+
+.sola-nav-btn.btn-next:hover {
+    background: linear-gradient(135deg, var(--accent-orange-light), var(--accent-orange));
+}
+
+.nav-arrow {
+    flex-shrink: 0;
+}
+
+[dir="rtl"] .nav-arrow {
+    transform: scaleX(-1);
+}
+
+[dir="rtl"] .nav-arrow-left {
+    transform: scaleX(-1);
+}
+
+.nav-text {
+    white-space: nowrap;
+}
+
+/* Submit Button - REFINED - Visible in step 3 */
+.sola-submit-btn,
+button#submitBtn {
+    width: 100%;
+    padding: 18px 32px;
+    background: linear-gradient(135deg, #F49431 0%, #ff9d47 100%);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    margin-top: 0;
+}
+
+/* CRITICAL: Ensure button is hidden in steps 1 and 2 */
+.sola-form-section[data-step="1"] .sola-submit-btn,
+.sola-form-section[data-step="2"] .sola-submit-btn,
+.sola-form-section[data-step="1"] button#submitBtn,
+.sola-form-section[data-step="2"] button#submitBtn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.sola-submit-btn:hover {
+    background: linear-gradient(135deg, var(--accent-orange-light), var(--accent-orange));
+}
+
+.sola-submit-btn:active {
+    transform: scale(0.98);
+}
+
+.sola-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.heart-icon {
+    transition: transform 0.2s ease;
+}
+
+.sola-submit-btn:hover .heart-icon {
+    transform: scale(1.05);
+}
+
+.btn-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    display: none;
+}
+
+.sola-submit-btn.loading .btn-text {
+    display: none;
+}
+
+.sola-submit-btn.loading .spinner {
+    display: block;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Payment Method Buttons */
+.sola-payment-methods {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.sola-payment-methods-title {
+    text-align: center;
+    color: var(--primary-blue);
+    opacity: 0.6;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+/* Digital Wallet Buttons */
+.sola-wallet-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sola-wallet-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background: #000;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    opacity: 0.7;
+    /* Indicates placeholder status */
+}
+
+.sola-wallet-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sola-wallet-btn:active {
+    transform: translateY(0);
+}
+
+/* Google Pay specific styling */
+.sola-wallet-btn.google-pay {
+    background: white;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+}
+
+.sola-wallet-btn.google-pay:hover {
+    background: #f8f9fa;
+}
+
+/* Apple Pay specific styling */
+.sola-wallet-btn.apple-pay {
+    background: #000;
+}
+
+.sola-wallet-btn.apple-pay:hover {
+    background: #1a1a1a;
+}
+
+/* Logo sizes */
+.google-pay-logo,
+.apple-pay-logo {
+    width: 120px !important;
+    height: 48px !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+/* Tooltip for placeholder status */
+.sola-wallet-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-8px);
+    }
+}
+
+/* Messages */
+.sola-message {
+    max-width: 800px;
+    margin: 20px auto 0;
+    padding: 16px 24px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sola-message.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    color: #15803d;
+}
+
+.sola-message.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    color: #991b1b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sola-donation-form-wrapper {
+        padding: 20px 15px;
+    }
+
+    .sola-form-header {
+        flex-direction: column;
+        gap: 16px;
+        padding: 24px;
+    }
+
+    .sola-header-content {
+        text-align: center;
+    }
+
+    .sola-title {
+        font-size: 24px;
+    }
+
+    .sola-subtitle {
+        font-size: 14px;
+    }
+
+    .sola-lang-toggle {
+        width: 100%;
+    }
+
+    .sola-progress-steps {
+        gap: 8px;
+    }
+
+    .step-label {
+        font-size: 11px;
+    }
+
+    .sola-form-section {
+        padding: 24px;
+    }
+
+    .sola-form-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .sola-amount-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sola-custom-amount-btn {
+        grid-column: 1 / -1;
+    }
+
+    .sola-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .sola-form-navigation {
+        flex-direction: column-reverse;
+    }
+
+    .sola-wallet-buttons {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .sola-title {
+        font-size: 20px;
+    }
+
+    .sola-subtitle {
+        font-size: 13px;
+    }
+
+    .sola-section-title {
+        font-size: 18px;
+    }
+
+    .sola-amount-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}

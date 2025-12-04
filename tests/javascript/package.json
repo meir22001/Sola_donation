@@ -1,0 +1,29 @@
+{
+  "name": "sola-donation-tests",
+  "version": "1.0.0",
+  "description": "JavaScript tests for Sola Donation Plugin",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "../../public/*.js",
+      "!../../public/*.min.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0"
+  }
+}

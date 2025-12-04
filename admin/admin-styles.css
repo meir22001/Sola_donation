@@ -1,0 +1,212 @@
+/**
+ * Admin Styles for Sola Donation Plugin
+ */
+
+.sola-donation-settings {
+    max-width: 900px;
+    padding: 20px;
+}
+
+.sola-donation-settings h1 {
+    color: #023047;
+    margin-bottom: 30px;
+}
+
+.sola-settings-section {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sola-settings-section h2 {
+    color: #023047;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.sola-settings-section .description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.sola-settings-section .description a {
+    color: #F49431;
+    text-decoration: none;
+}
+
+.sola-settings-section .description a:hover {
+    text-decoration: underline;
+}
+
+/* Toggle Switch */
+.sola-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.sola-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.sola-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.sola-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.sola-toggle input:checked + .sola-toggle-slider {
+    background-color: #F49431;
+}
+
+.sola-toggle input:checked + .sola-toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* Form Table */
+.sola-settings-section .form-table th {
+    color: #023047;
+    font-weight: 600;
+    padding: 20px 10px 20px 0;
+}
+
+.sola-settings-section .form-table td {
+    padding: 20px 10px;
+}
+
+.sola-settings-section .form-table input[type="text"],
+.sola-settings-section .form-table input[type="url"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.sola-settings-section .form-table input[type="text"]:focus,
+.sola-settings-section .form-table input[type="url"]:focus {
+    border-color: #F49431;
+    box-shadow: 0 0 0 3px rgba(244, 148, 49, 0.1);
+    outline: none;
+}
+
+/* Submit Button */
+.sola-settings-section .submit {
+    margin: 0;
+    padding-top: 20px;
+}
+
+.button-primary.button-large {
+    background: linear-gradient(135deg, #F49431 0%, #ff9d47 100%);
+    border: none;
+    color: white;
+    padding: 10px 30px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(244, 148, 49, 0.3);
+    transition: all 0.3s;
+}
+
+.button-primary.button-large:hover {
+    background: linear-gradient(135deg, #ff9d47 0%, #F49431 100%);
+    box-shadow: 0 6px 16px rgba(244, 148, 49, 0.4);
+    transform: translateY(-2px);
+}
+
+.button-primary.button-large:active {
+    transform: translateY(0);
+}
+
+/* Shortcode Info Box */
+.sola-shortcode-info {
+    background: #f8f9fa;
+    border-color: #e0e0e0;
+}
+
+.sola-shortcode-box {
+    background: white;
+    border: 2px dashed #F49431;
+    border-radius: 8px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.sola-shortcode-box code {
+    font-size: 16px;
+    color: #023047;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.sola-copy-shortcode {
+    background: #F49431;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.sola-copy-shortcode:hover {
+    background: #ff9d47;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(244, 148, 49, 0.3);
+}
+
+/* Success Notice */
+.notice.notice-success {
+    border-left-color: #F49431;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sola-donation-settings {
+        padding: 10px;
+    }
+    
+    .sola-settings-section {
+        padding: 15px;
+    }
+    
+    .sola-shortcode-box {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .sola-copy-shortcode {
+        width: 100%;
+    }
+}

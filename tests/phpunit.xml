@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+    bootstrap="bootstrap.php"
+    colors="true"
+    verbose="true"
+    failOnWarning="true"
+    failOnRisky="true"
+    beStrictAboutOutputDuringTests="true"
+    beStrictAboutTodoAnnotatedTests="true">
+    
+    <testsuites>
+        <testsuite name="Sola Donation Plugin Tests">
+            <directory>./unit</directory>
+            <directory>./integration</directory>
+        </testsuite>
+    </testsuites>
+    
+    <coverage>
+        <include>
+            <directory suffix=".php">../includes</directory>
+            <file>../sola-donation-plugin.php</file>
+        </include>
+        <exclude>
+            <directory>../vendor</directory>
+            <directory>./</directory>
+        </exclude>
+    </coverage>
+    
+    <php>
+        <const name="WP_TESTS_PHPUNIT_POLYFILLS_PATH" value="vendor/yoast/phpunit-polyfills"/>
+        <env name="WP_TESTS_DIR" value="/tmp/wordpress-tests-lib"/>
+        <env name="WP_CORE_DIR" value="/tmp/wordpress/"/>
+    </php>
+</phpunit>
