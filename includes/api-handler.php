@@ -9,6 +9,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Sola Recurring API Configuration
+define('SOLA_RECURRING_API_URL', 'https://api.cardknox.com/v2');
+define('SOLA_RECURRING_API_VERSION', '2.1');
+
 /**
  * Process payment through Sola Payments
  *
@@ -162,17 +166,22 @@ function sola_donation_process_one_time($form_data, $api_key, $is_sandbox) {
 }
 
 /**
- * Setup recurring donation
+ * Setup recurring donation using Sola Payments Recurring API
  *
- * @param array $form_data Form data
+ * This function integrates with the Sola Payments CreateSchedule API to create
+ * automated recurring charges. The StartDate logic follows the documentation:
+ * - If chargeNow is true: StartDate = today (immediate first charge)
+ * - If chargeNow is false: StartDate = 1st of next month (first charge next month)
+ *
+ * @param array $form_data Form data from frontend
  * @param string $api_key Sola API key
  * @param bool $is_sandbox Sandbox mode flag
- * @return array Result
+ * @return array Result with success status and message
  */
 function sola_donation_setup_recurring($form_data, $api_key, $is_sandbox) {
-    $api_url = 'https://x1.cardknox.com/gateway';
+    $gateway_url = 'https://x1.cardknox.com/gateway';
     
-    // First, save the card as a token
+    // Step 1: Save the card as a token using the Gateway API
     $token_request = array(
         'xKey' => $api_key,
         'xVersion' => '5.0.0',
@@ -191,14 +200,11 @@ function sola_donation_setup_recurring($form_data, $api_key, $is_sandbox) {
     
     sola_donation_log('Saving card token for recurring', array(
         'email' => $form_data['email'],
-        'api_url' => $api_url,
-        'has_api_key' => !empty($api_key),
-        'api_key_length' => strlen($api_key),
         'card_last4' => substr($form_data['cardNumber'], -4),
         'expiry' => $form_data['expiry']
     ));
     
-    $token_response = wp_remote_post($api_url, array(
+    $token_response = wp_remote_post($gateway_url, array(
         'body' => $token_request,
         'timeout' => 30,
         'headers' => array(
@@ -214,11 +220,8 @@ function sola_donation_setup_recurring($form_data, $api_key, $is_sandbox) {
     }
     
     $token_body = wp_remote_retrieve_body($token_response);
-    
-    // Parse as URL-encoded first (default format from /gateway endpoint)
     parse_str($token_body, $token_result);
     
-    // If that didn't work, try JSON
     if (empty($token_result) || !isset($token_result['xResult'])) {
         $json_result = json_decode($token_body, true);
         if ($json_result) {
@@ -226,121 +229,244 @@ function sola_donation_setup_recurring($form_data, $api_key, $is_sandbox) {
         }
     }
     
-    // Log the full API response for debugging
-    sola_donation_log('Token API full response', array(
-        'raw_body' => $token_body,
-        'parsed' => $token_result,
-        'http_code' => wp_remote_retrieve_response_code($token_response)
+    sola_donation_log('Token API response', array(
+        'xResult' => isset($token_result['xResult']) ? $token_result['xResult'] : 'unknown',
+        'has_token' => !empty($token_result['xToken'])
     ));
     
     // Check if we got a valid token
     if (!isset($token_result['xToken']) || empty($token_result['xToken'])) {
-        // Get specific error message from API
         $error_message = 'Failed to save payment method.';
         if (isset($token_result['xError']) && !empty($token_result['xError'])) {
             $error_message = $token_result['xError'];
-        } elseif (isset($token_result['xErrorCode']) && !empty($token_result['xErrorCode'])) {
-            $error_message .= ' Error code: ' . $token_result['xErrorCode'];
         }
-        
-        // If xResult exists, check if it's an error
-        if (isset($token_result['xResult']) && $token_result['xResult'] !== 'A') {
-            $error_message .= ' (Result: ' . $token_result['xResult'] . ')';
-        }
-        
-        sola_donation_log('Token creation failed', array(
-            'error_message' => $error_message,
-            'full_response' => $token_result
-        ));
         
         return array(
             'success' => false,
-            'message' => $error_message,
-            'debug' => array(
-                'api_response' => $token_result,
-                'http_code' => wp_remote_retrieve_response_code($token_response)
-            )
+            'message' => $error_message
         );
     }
     
     $token = $token_result['xToken'];
+    $charge_day = isset($form_data['chargeDay']) ? intval($form_data['chargeDay']) : 1;
+    $charge_now = isset($form_data['chargeNow']) && $form_data['chargeNow'];
     
-    // If chargeNow is true, process the first payment
-    if (isset($form_data['chargeNow']) && $form_data['chargeNow']) {
-        $first_payment_request = array(
-            'xKey' => $api_key,
-            'xVersion' => '5.0.0',
-            'xSoftwareName' => 'Sola Donation Plugin',
-            'xSoftwareVersion' => SOLA_DONATION_VERSION,
-            'xCommand' => 'cc:sale',
-            'xAmount' => number_format($form_data['amount'], 2, '.', ''),
-            'xToken' => $token,
-            'xCurrency' => $form_data['currency'],
-            'xInvoice' => 'DONATION-RECURRING-' . time() . '-' . rand(1000, 9999),
-            'xDescription' => 'Recurring donation - first payment'
-        );
-        
-        $first_payment_response = wp_remote_post($api_url, array(
-            'body' => $first_payment_request,
-            'timeout' => 30,
-            'headers' => array(
-                'Content-Type' => 'application/x-www-form-urlencoded'
-            )
-        ));
-        
-        if (!is_wp_error($first_payment_response)) {
-            $first_payment_body = wp_remote_retrieve_body($first_payment_response);
-            
-            // Parse as URL-encoded first
-            parse_str($first_payment_body, $first_payment_result);
-            
-            // If that didn't work, try JSON
-            if (empty($first_payment_result) || !isset($first_payment_result['xResult'])) {
-                $json_result = json_decode($first_payment_body, true);
-                if ($json_result) {
-                    $first_payment_result = $json_result;
-                }
-            }
-            
-            if (isset($first_payment_result['xResult']) && $first_payment_result['xResult'] !== 'A') {
-                $error_message = isset($first_payment_result['xError']) ? $first_payment_result['xError'] : 'First payment failed.';
-                return array(
-                    'success' => false,
-                    'message' => $error_message
-                );
-            }
-        }
+    // Step 2: Calculate StartDate based on chargeNow setting
+    // Per Sola documentation:
+    // - If StartDate is today or not specified, first charge happens immediately
+    // - If StartDate is in the future, first charge happens on that date or the next matching schedule date
+    if ($charge_now) {
+        // Charge first donation from current month - use today's date
+        $start_date = date('Y-m-d');
+    } else {
+        // Charge first donation from next month - use 1st of next month
+        $start_date = date('Y-m-d', strtotime('first day of next month'));
     }
     
-    // Store recurring donation info in WordPress
+    sola_donation_log('Calculated StartDate', array(
+        'chargeNow' => $charge_now,
+        'chargeDay' => $charge_day,
+        'startDate' => $start_date
+    ));
+    
+    // Step 3: Create Schedule using Sola Recurring API
+    // This creates the customer, payment method, and schedule in one call using NewCustomer/NewPaymentMethod
+    $schedule_request = array(
+        'SoftwareName' => 'Sola Donation Plugin',
+        'SoftwareVersion' => SOLA_DONATION_VERSION,
+        // Create new customer inline
+        'NewCustomer' => array(
+            'BillFirstName' => $form_data['firstName'],
+            'BillLastName' => $form_data['lastName'],
+            'Email' => $form_data['email'],
+            'BillPhone' => $form_data['phone'],
+            'BillStreet' => $form_data['address'],
+            'CustomerNotes' => 'Created via Sola Donation Plugin'
+        ),
+        // Create new payment method inline
+        'NewPaymentMethod' => array(
+            'Token' => $token,
+            'TokenType' => 'cc',
+            'Exp' => $form_data['expiry'],
+            'SetAsDefault' => true
+        ),
+        // Schedule settings
+        'Amount' => number_format($form_data['amount'], 2, '.', ''),
+        'Currency' => $form_data['currency'],
+        'IntervalType' => 'month',
+        'IntervalCount' => 1,
+        'StartDate' => $start_date,
+        'ScheduleName' => 'Donation - ' . $form_data['email'],
+        'Description' => 'Monthly recurring donation',
+        // Schedule Rule: Run on specific day of month
+        'ScheduleRule' => array(
+            'RuleType' => 'On',
+            'DayOfMonth' => $charge_day
+        ),
+        // Additional settings
+        'FailedTransactionRetryTimes' => 3,
+        'DaysBetweenRetries' => 2,
+        'AfterMaxRetriesAction' => 'ContinueNextInterval',
+        'AllowInitialTransactionToDecline' => false,
+        'CustReceipt' => true
+    );
+    
+    // If charging now, pass CVV for the initial transaction
+    if ($charge_now && !empty($form_data['cvv'])) {
+        $schedule_request['Cvv'] = $form_data['cvv'];
+    }
+    
+    sola_donation_log('Creating schedule in Sola Recurring API', array(
+        'amount' => $schedule_request['Amount'],
+        'currency' => $schedule_request['Currency'],
+        'startDate' => $start_date,
+        'chargeDay' => $charge_day,
+        'email' => $form_data['email']
+    ));
+    
+    // Make request to Sola Recurring API
+    $schedule_response = sola_donation_make_recurring_api_request('/CreateSchedule', $schedule_request, $api_key);
+    
+    if (!$schedule_response['success']) {
+        sola_donation_log('CreateSchedule failed', array(
+            'error' => $schedule_response['message'],
+            'response' => isset($schedule_response['response']) ? $schedule_response['response'] : null
+        ));
+        
+        return array(
+            'success' => false,
+            'message' => $schedule_response['message']
+        );
+    }
+    
+    $schedule_id = isset($schedule_response['data']['ScheduleId']) ? $schedule_response['data']['ScheduleId'] : '';
+    $customer_id = isset($schedule_response['data']['CustomerId']) ? $schedule_response['data']['CustomerId'] : '';
+    $payment_method_id = isset($schedule_response['data']['PaymentMethodId']) ? $schedule_response['data']['PaymentMethodId'] : '';
+    
+    sola_donation_log('Schedule created successfully', array(
+        'scheduleId' => $schedule_id,
+        'customerId' => $customer_id,
+        'paymentMethodId' => $payment_method_id
+    ));
+    
+    // Step 4: Store recurring donation info in WordPress for admin reference
     $recurring_data = array(
         'token' => $token,
         'amount' => $form_data['amount'],
         'currency' => $form_data['currency'],
-        'charge_day' => $form_data['chargeDay'],
+        'charge_day' => $charge_day,
         'donor_email' => $form_data['email'],
         'donor_name' => $form_data['firstName'] . ' ' . $form_data['lastName'],
         'created_at' => current_time('mysql'),
-        'status' => 'active'
+        'status' => 'active',
+        // New fields from Sola Recurring API
+        'sola_schedule_id' => $schedule_id,
+        'sola_customer_id' => $customer_id,
+        'sola_payment_method_id' => $payment_method_id,
+        'start_date' => $start_date,
+        'charge_now' => $charge_now
     );
     
-    // Save to custom table or post meta (you may want to create a custom post type for this)
     sola_donation_save_recurring_subscription($recurring_data);
     
-    sola_donation_log('Recurring donation setup complete', array(
-        'email' => $form_data['email'],
-        'amount' => $form_data['amount'],
-        'charge_day' => $form_data['chargeDay']
-    ));
+    // Build success message based on charge timing
+    if ($charge_now) {
+        $success_message = sprintf(
+            'Recurring donation setup successful! Your first payment has been processed. Future charges will occur on day %d of each month.',
+            $charge_day
+        );
+    } else {
+        $next_charge_date = date('F j, Y', strtotime($start_date));
+        $success_message = sprintf(
+            'Recurring donation setup successful! Your first charge will be on %s, then on day %d of each month.',
+            $next_charge_date,
+            $charge_day
+        );
+    }
     
     return array(
         'success' => true,
-        'message' => 'Recurring donation setup successful! You will be charged on day ' . $form_data['chargeDay'] . ' of each month.',
+        'message' => $success_message,
         'data' => array(
             'recurring' => true,
-            'token' => $token,
+            'scheduleId' => $schedule_id,
+            'customerId' => $customer_id,
+            'startDate' => $start_date,
+            'chargeNow' => $charge_now,
             'formData' => $form_data
         )
+    );
+}
+
+/**
+ * Make request to Sola Recurring API
+ *
+ * @param string $endpoint API endpoint (e.g., '/CreateSchedule')
+ * @param array $data Request data
+ * @param string $api_key Sola API key
+ * @return array Response with success status and data
+ */
+function sola_donation_make_recurring_api_request($endpoint, $data, $api_key) {
+    $url = SOLA_RECURRING_API_URL . $endpoint;
+    
+    sola_donation_log('Making Recurring API request', array(
+        'endpoint' => $endpoint,
+        'url' => $url
+    ));
+    
+    $response = wp_remote_post($url, array(
+        'body' => json_encode($data),
+        'timeout' => 45,
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Authorization' => $api_key,
+            'X-Recurring-Api-Version' => SOLA_RECURRING_API_VERSION
+        )
+    ));
+    
+    if (is_wp_error($response)) {
+        return array(
+            'success' => false,
+            'message' => 'Failed to connect to payment gateway: ' . $response->get_error_message()
+        );
+    }
+    
+    $http_code = wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $result = json_decode($body, true);
+    
+    sola_donation_log('Recurring API response', array(
+        'http_code' => $http_code,
+        'result' => isset($result['Result']) ? $result['Result'] : 'unknown',
+        'error' => isset($result['Error']) ? $result['Error'] : ''
+    ));
+    
+    // Check for API-level errors
+    if (!$result) {
+        return array(
+            'success' => false,
+            'message' => 'Invalid response from payment gateway.',
+            'response' => $body
+        );
+    }
+    
+    // Check Result field - 'S' = Success, 'E' = Error
+    if (isset($result['Result']) && $result['Result'] === 'S') {
+        return array(
+            'success' => true,
+            'data' => $result
+        );
+    }
+    
+    // Handle error response
+    $error_message = isset($result['Error']) && !empty($result['Error']) 
+        ? $result['Error'] 
+        : 'Failed to create recurring schedule.';
+    
+    return array(
+        'success' => false,
+        'message' => $error_message,
+        'response' => $result
     );
 }
 
@@ -348,22 +474,43 @@ function sola_donation_setup_recurring($form_data, $api_key, $is_sandbox) {
  * Save recurring subscription data
  *
  * @param array $data Subscription data
+ * @return int|WP_Error Post ID on success, WP_Error on failure
  */
 function sola_donation_save_recurring_subscription($data) {
-    // For now, save as a custom post type
+    // Build meta input array with all fields
+    $meta_input = array(
+        'sola_token' => $data['token'],
+        'sola_amount' => $data['amount'],
+        'sola_currency' => $data['currency'],
+        'sola_charge_day' => $data['charge_day'],
+        'sola_donor_email' => $data['donor_email'],
+        'sola_donor_name' => $data['donor_name'],
+        'sola_status' => $data['status']
+    );
+    
+    // Add new Sola Recurring API fields if present
+    if (isset($data['sola_schedule_id'])) {
+        $meta_input['sola_schedule_id'] = $data['sola_schedule_id'];
+    }
+    if (isset($data['sola_customer_id'])) {
+        $meta_input['sola_customer_id'] = $data['sola_customer_id'];
+    }
+    if (isset($data['sola_payment_method_id'])) {
+        $meta_input['sola_payment_method_id'] = $data['sola_payment_method_id'];
+    }
+    if (isset($data['start_date'])) {
+        $meta_input['sola_start_date'] = $data['start_date'];
+    }
+    if (isset($data['charge_now'])) {
+        $meta_input['sola_charge_now'] = $data['charge_now'] ? 'yes' : 'no';
+    }
+    
+    // Save as a custom post type
     $post_id = wp_insert_post(array(
         'post_type' => 'sola_recurring_donation',
         'post_title' => 'Recurring Donation - ' . $data['donor_name'],
         'post_status' => 'publish',
-        'meta_input' => array(
-            'sola_token' => $data['token'],
-            'sola_amount' => $data['amount'],
-            'sola_currency' => $data['currency'],
-            'sola_charge_day' => $data['charge_day'],
-            'sola_donor_email' => $data['donor_email'],
-            'sola_donor_name' => $data['donor_name'],
-            'sola_status' => $data['status']
-        )
+        'meta_input' => $meta_input
     ));
     
     return $post_id;
