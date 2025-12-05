@@ -3,7 +3,7 @@
  * Plugin Name: Sola Donation Plugin
  * Plugin URI: https://solapayments.com
  * Description: Professional bilingual (Hebrew/English) donation plugin with Sola Payments integration
- * Version: 1.3.9
+ * Version: 1.3.12
  * Author: Meir Tedgi
  * Author URI: https://yourwebsite.com
  * Text Domain: sola-donation
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SOLA_DONATION_VERSION', '1.3.9');
+define('SOLA_DONATION_VERSION', '1.3.12');
 define('SOLA_DONATION_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SOLA_DONATION_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -74,8 +74,14 @@ register_activation_hook(__FILE__, 'sola_donation_activate');
 /**
  * Ensure form_settings exist in database (migration function)
  * This runs on every admin page load to catch existing installations
+ * BUT NOT during form submission to prevent overwriting user data
  */
 function sola_donation_ensure_form_settings() {
+    // Don't run during form submission - this was causing the reset bug!
+    if (isset($_POST['sola_donation_save'])) {
+        return;
+    }
+    
     $settings = get_option('sola_donation_settings');
     
     if ($settings && !isset($settings['form_settings'])) {
@@ -136,9 +142,11 @@ function sola_donation_settings_page() {
 
 /**
  * Register settings
+ * Note: We don't use a sanitize callback here because we handle sanitization
+ * manually in settings-page.php to avoid double-sanitization issues
  */
 function sola_donation_register_settings() {
-    register_setting('sola_donation_settings_group', 'sola_donation_settings', 'sola_donation_sanitize_settings');
+    register_setting('sola_donation_settings_group', 'sola_donation_settings');
 }
 add_action('admin_init', 'sola_donation_register_settings');
 
