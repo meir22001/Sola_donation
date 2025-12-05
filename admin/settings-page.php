@@ -43,46 +43,59 @@ $required_fields = isset($form_settings['required_fields']) ? $form_settings['re
 
 // Handle form submission
 if (isset($_POST['sola_donation_save'])) {
-    check_admin_referer('sola_donation_settings_nonce');
+    // Verify nonce
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'sola_donation_settings_nonce')) {
+        wp_die(__('Security check failed', 'sola-donation'));
+    }
+    
+    // Log POST data for debugging (will help identify what's being sent)
+    error_log('SOLA DONATION SAVE - POST Keys: ' . implode(', ', array_keys($_POST)));
     
     // Use the sanitize function from main plugin file which handles all settings including form_settings
     $new_settings = sola_donation_sanitize_settings($_POST);
     
-    update_option('sola_donation_settings', $new_settings);
+    // Log what we're about to save
+    error_log('SOLA DONATION SAVE - Settings to save: ' . print_r($new_settings, true));
     
-    echo '<div class="notice notice-success is-dismissible"><p>' . __('Settings saved successfully!', 'sola-donation') . '</p></div>';
+    // Save to database
+    $updated = update_option('sola_donation_settings', $new_settings);
     
-    // Update local variables
-    $settings = $new_settings;
-    $sandbox_mode = $settings['sandbox_mode'];
-    $sandbox_key = $settings['sandbox_key'];
-    $production_key = $settings['production_key'];
-    $redirect_url = $settings['redirect_url'];
-    $webhook_url = $settings['webhook_url'];
+    // Log result
+    error_log('SOLA DONATION SAVE - Update result: ' . ($updated ? 'SUCCESS' : 'NO CHANGE'));
     
-    // Update form settings variables
-    $form_settings = isset($settings['form_settings']) ? $settings['form_settings'] : array();
-    $preset_amounts = isset($form_settings['preset_amounts']) ? $form_settings['preset_amounts'] : array(
-        'USD' => array(10, 25, 50, 100),
-        'CAD' => array(10, 25, 50, 100),
-        'EUR' => array(10, 25, 50, 100),
-        'GBP' => array(10, 25, 50, 100)
+    // Add a success message
+    add_settings_error(
+        'sola_donation_messages',
+        'sola_donation_message',
+        __('Settings saved successfully!', 'sola-donation'),
+        'success'
     );
-    $enabled_currencies = isset($form_settings['enabled_currencies']) ? $form_settings['enabled_currencies'] : array('USD', 'CAD', 'EUR', 'GBP');
-    $default_currency = isset($form_settings['default_currency']) ? $form_settings['default_currency'] : 'USD';
-    $required_fields = isset($form_settings['required_fields']) ? $form_settings['required_fields'] : array(
-        'firstName' => true,
-        'lastName' => true,
-        'phone' => true,
-        'email' => true,
-        'address' => true,
-        'taxId' => false
-    );
+    
+    // Set transient to show message after redirect
+    set_transient('sola_donation_settings_saved', true, 30);
+    
+    // Redirect to prevent form resubmission
+    wp_redirect(add_query_arg(array(
+        'page' => 'sola-donation-settings',
+        'settings-updated' => 'true'
+    ), admin_url('admin.php')));
+    exit;
 }
 ?>
 
 <div class="wrap sola-donation-settings">
     <h1><?php echo esc_html__('Sola Donation Settings', 'sola-donation'); ?></h1>
+    
+    <?php
+    // Show success message if redirected after save
+    if (get_transient('sola_donation_settings_saved')) {
+        delete_transient('sola_donation_settings_saved');
+        echo '<div class="notice notice-success is-dismissible"><p>' . __('Settings saved successfully!', 'sola-donation') . '</p></div>';
+    }
+    
+    // Show WordPress settings errors
+    settings_errors('sola_donation_messages');
+    ?>
     
     <?php if ($api_validation): ?>
         <?php if ($api_validation['success']): ?>

@@ -1,0 +1,55 @@
+<?php
+/**
+ * Test script to verify POST submission works
+ * Place this BEFORE the form in settings-page.php temporarily
+ */
+
+// Add this debug code right after line 44 (before if (isset($_POST['sola_donation_save'])))
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log('=== SOLA DONATION DEBUG ===');
+    error_log('POST data received: ' . print_r($_POST, true));
+    error_log('Form submitted: ' . (isset($_POST['sola_donation_save']) ? 'YES' : 'NO'));
+    error_log('Nonce present: ' . (isset($_POST['_wpnonce']) ? 'YES' : 'NO'));
+    
+    // Check preset amounts
+    foreach (array('USD', 'CAD', 'EUR', 'GBP') as $currency) {
+        for ($i = 1; $i <= 4; $i++) {
+            $key = "preset_amount_{$currency}_{$i}";
+            if (isset($_POST[$key])) {
+                error_log("Found: {$key} = {$_POST[$key]}");
+            } else {
+                error_log("MISSING: {$key}");
+            }
+        }
+    }
+    
+    // Check enabled currencies
+    foreach (array('USD', 'CAD', 'EUR', 'GBP') as $curr) {
+        $key = "enabled_currency_{$curr}";
+        if (isset($_POST[$key])) {
+            error_log("Found: {$key} = {$_POST[$key]}");
+        } else {
+            error_log("MISSING: {$key}");
+        }
+    }
+    
+    // Check default currency
+    if (isset($_POST['default_currency'])) {
+        error_log("Found: default_currency = {$_POST['default_currency']}");
+    } else {
+        error_log("MISSING: default_currency");
+    }
+    
+    // Check required fields toggles
+    foreach (array('firstName', 'lastName', 'phone', 'email', 'address', 'taxId') as $field) {
+        $key = "required_field_{$field}";
+        if (isset($_POST[$key])) {
+            error_log("Found: {$key} = {$_POST[$key]}");
+        } else {
+            error_log("MISSING: {$key}");
+        }
+    }
+    
+    error_log('=== END DEBUG ===');
+}
+?>
