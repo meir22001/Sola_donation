@@ -1,6 +1,6 @@
 <?php
 /**
- * Settings Page Template
+ * Admin Settings Page
  */
 
 // Exit if accessed directly
@@ -8,13 +8,40 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Flag for showing success message
+$settings_saved = false;
+
+// Handle form submission - BEFORE loading settings!
+if (isset($_POST['sola_donation_save'])) {
+    // Verify nonce
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'sola_donation_settings_nonce')) {
+        wp_die(__('Security check failed', 'sola-donation'));
+    }
+    
+    // Log POST data for debugging
+    error_log('SOLA DONATION SAVE - POST Keys: ' . implode(', ', array_keys($_POST)));
+    
+    // Sanitize and save
+    $new_settings = sola_donation_sanitize_settings($_POST);
+    
+    // Log what we're saving
+    error_log('SOLA DONATION SAVE - Settings to save: ' . print_r($new_settings, true));
+    
+    // Save to database
+    $updated = update_option('sola_donation_settings', $new_settings);
+    
+    // Log result
+    error_log('SOLA DONATION SAVE - Update result: ' . ($updated ? 'SUCCESS' : 'NO CHANGE'));
+    
+    // Set flag to show success message
+    $settings_saved = true;
+}
+
+// NOW load settings (after potential save)
 $settings = get_option('sola_donation_settings');
 
-// Check for API validation result
+// API validation check
 $api_validation = get_transient('sola_donation_api_validation');
-if ($api_validation !== false) {
-    delete_transient('sola_donation_api_validation');
-}
 
 $sandbox_mode = isset($settings['sandbox_mode']) ? $settings['sandbox_mode'] : true;
 $sandbox_key = isset($settings['sandbox_key']) ? $settings['sandbox_key'] : '';
@@ -40,61 +67,16 @@ $required_fields = isset($form_settings['required_fields']) ? $form_settings['re
     'address' => true,
     'taxId' => false
 );
-
-// Handle form submission
-if (isset($_POST['sola_donation_save'])) {
-    // Verify nonce
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'sola_donation_settings_nonce')) {
-        wp_die(__('Security check failed', 'sola-donation'));
-    }
-    
-    // Log POST data for debugging (will help identify what's being sent)
-    error_log('SOLA DONATION SAVE - POST Keys: ' . implode(', ', array_keys($_POST)));
-    
-    // Use the sanitize function from main plugin file which handles all settings including form_settings
-    $new_settings = sola_donation_sanitize_settings($_POST);
-    
-    // Log what we're about to save
-    error_log('SOLA DONATION SAVE - Settings to save: ' . print_r($new_settings, true));
-    
-    // Save to database
-    $updated = update_option('sola_donation_settings', $new_settings);
-    
-    // Log result
-    error_log('SOLA DONATION SAVE - Update result: ' . ($updated ? 'SUCCESS' : 'NO CHANGE'));
-    
-    // Add a success message
-    add_settings_error(
-        'sola_donation_messages',
-        'sola_donation_message',
-        __('Settings saved successfully!', 'sola-donation'),
-        'success'
-    );
-    
-    // Set transient to show message after redirect
-    set_transient('sola_donation_settings_saved', true, 30);
-    
-    // Redirect to prevent form resubmission
-    wp_redirect(add_query_arg(array(
-        'page' => 'sola-donation-settings',
-        'settings-updated' => 'true'
-    ), admin_url('admin.php')));
-    exit;
-}
 ?>
 
 <div class="wrap sola-donation-settings">
     <h1><?php echo esc_html__('Sola Donation Settings', 'sola-donation'); ?></h1>
     
     <?php
-    // Show success message if redirected after save
-    if (get_transient('sola_donation_settings_saved')) {
-        delete_transient('sola_donation_settings_saved');
+    // Show success message if settings were just saved
+    if ($settings_saved) {
         echo '<div class="notice notice-success is-dismissible"><p>' . __('Settings saved successfully!', 'sola-donation') . '</p></div>';
     }
-    
-    // Show WordPress settings errors
-    settings_errors('sola_donation_messages');
     ?>
     
     <?php if ($api_validation): ?>
